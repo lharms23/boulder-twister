@@ -1,0 +1,12 @@
+{
+  "name": "Boulder Twister",
+  "short_name": "Twister",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "display": "standalone"
+}
