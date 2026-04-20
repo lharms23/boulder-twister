@@ -2,10 +2,9 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Boulder Twister">
   <title>Boulder Twister</title>
   <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
@@ -14,546 +13,348 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root, [data-theme="light"] {
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
-      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
-      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2rem);
-      --space-1: 0.25rem;
-      --space-2: 0.5rem;
-      --space-3: 0.75rem;
-      --space-4: 1rem;
-      --space-5: 1.25rem;
-      --space-6: 1.5rem;
-      --space-8: 2rem;
-      --radius-sm: 0.75rem;
-      --radius-md: 1rem;
-      --radius-lg: 1.5rem;
-      --radius-full: 9999px;
-      --color-bg: #f4f6fb;
-      --color-surface: rgba(255,255,255,0.82);
-      --color-surface-2: rgba(255,255,255,0.58);
-      --color-border: rgba(15,23,42,0.08);
-      --color-text: #0f172a;
-      --color-text-muted: #64748b;
-      --color-primary: #0f766e;
-      --color-primary-hover: #115e59;
-      --color-primary-soft: rgba(15,118,110,0.12);
-      --color-shadow: 0 20px 50px rgba(15,23,42,0.14);
+ <style>
+    :root {
+      --ios-blue: #007AFF;
+      --ios-bg: #F2F2F7;
+      --ios-card: rgba(255, 255, 255, 0.9);
+      --ios-text: #000000;
+      --ios-text-sec: #8E8E93;
     }
-    [data-theme="dark"] {
-      --color-bg: #020617;
-      --color-surface: rgba(15,23,42,0.86);
-      --color-surface-2: rgba(30,41,59,0.72);
-      --color-border: rgba(255,255,255,0.08);
-      --color-text: #f8fafc;
-      --color-text-muted: #94a3b8;
-      --color-primary: #2dd4bf;
-      --color-primary-hover: #14b8a6;
-      --color-primary-soft: rgba(45,212,191,0.12);
-      --color-shadow: 0 22px 60px rgba(0,0,0,0.4);
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ios-bg: #000000;
+        --ios-card: rgba(28, 28, 30, 0.9);
+        --ios-text: #FFFFFF;
+      }
     }
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
     body {
       margin: 0;
-      min-height: 100dvh;
-      font-family: var(--font-body);
-      background:
-        radial-gradient(circle at top, rgba(45,212,191,0.12), transparent 28%),
-        radial-gradient(circle at bottom, rgba(59,130,246,0.10), transparent 24%),
-        var(--color-bg);
-      color: var(--color-text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--ios-bg);
+      color: var(--ios-text);
+      /* Fallback für Safari */
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
     }
-    button, input { font: inherit; }
-    .shell {
-      width: 100%;
-      max-width: 430px;
-      min-height: 100dvh;
+
+    .app-container {
+      max-width: 500px;
       margin: 0 auto;
-      padding: max(14px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom));
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
     }
-    .appbar {
+
+    h1 { font-size: 32px; font-weight: 800; margin: 20px 0 10px; letter-spacing: -0.5px; }
+
+    .screen { display: none; flex-direction: column; height: 100%; }
+    .screen.active { display: flex; }
+
+    .glass-card {
+      background: var(--ios-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      margin-top: 10px;
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(142, 142, 147, 0.15);
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 17px;
+      color: var(--ios-text);
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      border-radius: 14px;
+      border: none;
+      font-weight: 600;
+      font-size: 17px;
+      padding: 16px;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 4px;
+      justify-content: center;
+      transition: opacity 0.2s, transform 0.1s;
     }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .logo {
-      width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg, var(--color-primary), #3b82f6);
-      display: grid; place-items: center; color: white; box-shadow: var(--color-shadow);
+
+    .btn:active { transform: scale(0.97); opacity: 0.8; }
+    .btn:disabled { opacity: 0.25; cursor: default; transform: none; }
+    .btn-primary { background: var(--ios-blue); color: white; }
+    .btn-secondary { background: rgba(0, 122, 255, 0.15); color: var(--ios-blue); }
+    .btn-ghost { background: transparent; color: var(--ios-blue); }
+
+    .player-tag {
+      display: inline-flex;
+      align-items: center;
+      background: var(--ios-blue);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      margin: 4px;
+      font-size: 14px;
+      font-weight: 600;
     }
-    .logo svg { width: 26px; height: 26px; }
-    .brand h1 { font-size: var(--text-lg); line-height: 1.1; margin: 0; }
-    .brand p { margin: 2px 0 0; color: var(--color-text-muted); font-size: var(--text-xs); }
-    .icon-btn {
-      width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--color-border);
-      background: var(--color-surface); backdrop-filter: blur(18px); color: var(--color-text);
-      display: grid; place-items: center;
+    .player-tag span { margin-left: 8px; font-weight: 400; cursor: pointer; padding: 0 4px; }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-top: 20px;
     }
-    .panel {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 28px;
-      backdrop-filter: blur(22px);
-      box-shadow: var(--color-shadow);
+
+    .color-dot {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.1);
     }
-    .screen { display: none; }
-    .screen.active { display: block; }
-    .setup-card { padding: 18px; }
-    .setup-head { margin-bottom: 16px; }
-    .setup-head h2 { margin: 0; font-size: var(--text-xl); line-height: 1.06; }
-    .setup-head p { margin: 8px 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
-    .mini-nav {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
-      background: var(--color-surface-2); padding: 6px; border-radius: 18px;
+    
+    .color-dot.selected::after {
+      content: '✓';
+      position: absolute;
+      inset: -3px;
+      border: 3px solid var(--ios-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ios-blue);
+      background: rgba(255, 255, 255, 0.3);
+      font-weight: 900;
+      font-size: 18px;
     }
-    .tab-btn {
-      min-height: 46px; border-radius: 14px; border: 0; background: transparent; color: var(--color-text-muted); font-weight: 600;
+
+    .game-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
-    .tab-btn.active { background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-border); }
-    .config-pane { display: none; }
-    .config-pane.active { display: block; }
-    .section-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .section-title h3 { margin: 0; font-size: var(--text-base); }
-    .section-title span { color: var(--color-text-muted); font-size: var(--text-xs); }
-    .color-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-    .color-tile {
-      border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface-2); padding: 12px; min-height: 62px;
-      display: flex; align-items: center; gap: 12px; justify-content: flex-start;
-    }
-    .color-tile input { width: 20px; height: 20px; margin: 0; }
-    .swatch { width: 22px; height: 22px; border-radius: 999px; border: 1px solid rgba(15,23,42,0.16); flex: 0 0 auto; }
-    .player-entry { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
-    .input {
-      min-height: 50px; border-radius: 16px; border: 1px solid var(--color-border); background: var(--color-surface-2);
-      color: var(--color-text); padding: 0 16px;
-    }
-    .btn {
-      min-height: 50px; border: 0; border-radius: 16px; padding: 0 18px; font-weight: 700;
-      transition: transform 160ms ease, background 160ms ease, color 160ms ease;
-    }
-    .btn:active { transform: scale(0.98); }
-    .btn-primary { background: var(--color-primary); color: #fff; }
-    .btn-primary:hover { background: var(--color-primary-hover); }
-    .btn-secondary { background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-border); }
-    .player-list { display: grid; gap: 10px; }
-    .player-chip {
-      min-height: 54px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 18px; background: var(--color-surface-2); border: 1px solid var(--color-border);
-    }
-    .player-main { display: flex; align-items: center; gap: 12px; }
-    .index {
-      width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center;
-      background: var(--color-surface); border: 1px solid var(--color-border); font-size: var(--text-xs); font-weight: 700;
-    }
-    .ghost {
-      min-height: 36px; padding: 0 12px; border-radius: 999px; background: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border);
-    }
-    .footer-actions { display: grid; gap: 10px; margin-top: 16px; }
-    .summary {
-      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;
-    }
-    .summary-pill {
-      padding: 10px 12px; border-radius: 999px; background: var(--color-surface-2); border: 1px solid var(--color-border); font-size: var(--text-xs); color: var(--color-text-muted);
-    }
-    .game-wrap {
-      display: flex; flex-direction: column; min-height: calc(100dvh - max(14px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)) - 28px);
-      gap: 14px;
-    }
-    .game-card {
-      flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 18px;
-    }
-    .topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .eyebrow { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
-    .status-pill {
-      padding: 9px 12px; border-radius: 999px; background: var(--color-primary-soft); color: var(--color-primary); font-size: var(--text-xs); font-weight: 700;
-    }
-    .player-block { margin-top: 18px; }
-    .player-name { font-size: clamp(2rem, 7vw, 2.8rem); line-height: 0.96; font-weight: 800; letter-spacing: -0.04em; }
-    .turn-note { margin-top: 6px; color: var(--color-text-muted); font-size: var(--text-sm); }
-    .move-card {
-      margin-top: 18px; padding: 18px; border-radius: 28px; background: linear-gradient(180deg, rgba(255,255,255,0.12), transparent), var(--color-surface-2);
-      border: 1px solid var(--color-border);
-    }
-    .move-label { color: var(--color-text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
-    .move-main { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
-    .move-color {
-      width: 54px; height: 54px; border-radius: 18px; border: 1px solid rgba(15,23,42,0.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
-      background: rgba(148,163,184,0.2);
-    }
-    .move-text strong { display: block; font-size: clamp(1.8rem, 8vw, 3rem); line-height: 0.95; letter-spacing: -0.04em; }
-    .move-text span { display: block; margin-top: 4px; font-size: var(--text-base); color: var(--color-text-muted); font-weight: 600; }
-    .queue-card { margin-top: 14px; padding: 14px; border-radius: 22px; background: var(--color-surface-2); border: 1px solid var(--color-border); }
-    .queue-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .queue-row strong { font-size: var(--text-base); }
-    .bottom-bar {
-      position: sticky; bottom: 0; margin-top: auto; padding-top: 6px;
-      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-bg) 92%, transparent));
-    }
-    .bottom-stack {
-      display: grid; gap: 10px; padding: 12px; border-radius: 26px; background: var(--color-surface); border: 1px solid var(--color-border); backdrop-filter: blur(24px); box-shadow: var(--color-shadow);
-    }
-    .bottom-actions { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
-    .fab, .small-action {
-      min-height: 54px; border-radius: 18px; border: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text); font-weight: 700;
-    }
-    .fab { width: 54px; display: grid; place-items: center; }
-    .spin-btn {
-      min-height: 58px; border-radius: 20px; border: 0; background: var(--color-primary); color: #fff; font-size: var(--text-base); font-weight: 800;
-      box-shadow: 0 14px 30px rgba(15,118,110,0.24);
-    }
-    .empty { color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; padding: 18px 8px; }
-    .hidden { display: none !important; }
+
+    .indicator { font-size: 80px; margin: 15px 0; }
+    .player-now { font-size: 40px; font-weight: 800; margin-bottom: 5px; }
+    .info-label { color: var(--ios-text-sec); text-transform: uppercase; font-size: 12px; font-weight: 600; letter-spacing: 1px; }
+
+    .controls { padding: 20px 0 40px; display: grid; gap: 10px; }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="appbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 24.5c2.3-6.2 6.2-11.1 13.5-16" opacity="0.7"/>
-            <circle cx="8.4" cy="24.2" r="2.2" fill="currentColor" stroke="none" opacity="0.95"/>
-            <circle cx="21.6" cy="8.2" r="2.2" fill="currentColor" stroke="none" opacity="0.95"/>
-            <circle cx="16.2" cy="12.3" r="2.1" fill="currentColor" stroke="none"/>
-            <path d="M16 14.6l-2 4.4 3.2 3.7"/>
-            <path d="M15.8 15.4l4.7-1.9"/>
-            <path d="M14.2 18.4l-4.3 1.6"/>
-            <path d="M14.6 19.2l-1.9 5"/>
-            <path d="M17.1 18.9l3.9 4.8"/>
-          </svg>
-        </div>
-        <div>
-          <h1>Boulder Twister</h1>
-          <p>Mobiles Spiel für die Kletterwand</p>
-        </div>
+
+<div class="app-container">
+  <section id="onboardingScreen" class="screen active">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+      <h1>Wer klettert?</h1>
+      <div class="glass-card">
+        <input type="text" id="nameInput" class="input-field" placeholder="Name..." autocomplete="off">
+        <button class="btn btn-primary" id="addNameBtn" style="width: 100%;">Hinzufügen</button>
+        <div id="playerList" style="margin-top: 15px; display: flex; flex-wrap: wrap;"></div>
       </div>
-      <button class="icon-btn" type="button" data-theme-toggle aria-label="Farbmodus wechseln">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </button>
-    </header>
+    </div>
+    <div class="controls">
+      <button class="btn btn-secondary" id="toColorsBtn" disabled>Weiter zur Farbwahl</button>
+    </div>
+  </section>
 
-    <main>
-      <section id="setupScreen" class="screen active panel setup-card" aria-label="Einstellungen">
-        <div class="setup-head">
-          <h2>Spiel vorbereiten</h2>
-          <p>Wähle zuerst Farben und Teilnehmende. Danach wechselst du in die kompakte Spielansicht.</p>
-        </div>
+  <section id="colorScreen" class="screen">
+    <div style="flex: 1; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <h1>Farben</h1>
+        <button id="selectAllBtn" class="btn btn-ghost" style="padding: 0; font-size: 15px;">Alle wählen</button>
+      </div>
+      <div class="glass-card">
+        <div class="color-grid" id="colorGrid"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-primary" id="startGameBtn" disabled>Spiel starten</button>
+      <button class="btn btn-ghost" id="backToPlayers">Zurück</button>
+    </div>
+  </section>
 
-        <div class="mini-nav" role="tablist" aria-label="Einstellungen wählen">
-          <button class="tab-btn active" data-tab="colors" type="button">Farben</button>
-          <button class="tab-btn" data-tab="players" type="button">Teilnehmende</button>
-        </div>
+  <section id="gameScreen" class="screen">
+    <div style="display: flex; justify-content: flex-end; padding-top: 10px;">
+      <button class="btn btn-ghost" id="resetGame">Beenden</button>
+    </div>
+    <div class="game-main">
+      <div class="info-label" id="roundInfo">Runde 1</div>
+      <div class="player-now" id="displayPlayer">Name</div>
+      <div class="indicator" id="displayLimb">🧗</div>
+      <div id="displayColorCircle" style="width: 100px; height: 100px; border-radius: 30px; margin-top: 10px;"></div>
+      <div id="displayColorName" style="margin-top: 15px; font-weight: 700; font-size: 24px;">Bereit?</div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-primary" id="spinBtn" style="height: 80px; font-size: 20px;">Nächster Zug</button>
+    </div>
+  </section>
+</div>
 
-        <div id="colorsPane" class="config-pane active">
-          <div class="section-title">
-            <h3>Aktive Farben</h3>
-            <span id="colorCount">0 aktiv</span>
-          </div>
-          <div class="color-grid" id="colorGrid"></div>
-          <div class="footer-actions">
-            <button class="btn btn-secondary" id="allBtn" type="button">Alle Farben auswählen</button>
-            <button class="btn btn-secondary" id="noneBtn" type="button">Alle Farben abwählen</button>
-          </div>
-        </div>
+<script>
+  // Daten
+  const COLORS = [
+    { name: 'Gelb', hex: '#FFD60A' }, { name: 'Grün', hex: '#34C759' },
+    { name: 'Orange', hex: '#FF9500' }, { name: 'Rot', hex: '#FF3B30' },
+    { name: 'Blau', hex: '#007AFF' }, { name: 'Lila', hex: '#AF52DE' },
+    { name: 'Weiß', hex: '#FFFFFF' }, { name: 'Schwarz', hex: '#1C1C1E' }
+  ];
 
-        <div id="playersPane" class="config-pane">
-          <div class="section-title">
-            <h3>Reihenfolge</h3>
-            <span id="playerCount">0 Personen</span>
-          </div>
-          <div class="player-entry">
-            <input id="nameInput" class="input" type="text" placeholder="Vorname eingeben">
-            <button class="btn btn-primary" id="addPlayerBtn" type="button">Add</button>
-          </div>
-          <div class="player-list" id="playerList"></div>
-        </div>
+  const state = {
+    players: [],
+    selectedColors: [],
+    currentIndex: 0,
+    round: 1
+  };
 
-        <div class="summary" id="summaryPills"></div>
-        <div class="footer-actions">
-          <button class="btn btn-primary" id="startGameBtn" type="button">Spielansicht öffnen</button>
-        </div>
-      </section>
+  // DOM Elemente
+  const ui = {
+    onboarding: document.getElementById('onboardingScreen'),
+    colors: document.getElementById('colorScreen'),
+    game: document.getElementById('gameScreen'),
+    playerList: document.getElementById('playerList'),
+    nameInput: document.getElementById('nameInput'),
+    colorGrid: document.getElementById('colorGrid'),
+    toColorsBtn: document.getElementById('toColorsBtn'),
+    startGameBtn: document.getElementById('startGameBtn'),
+    selectAllBtn: document.getElementById('selectAllBtn'),
+    displayPlayer: document.getElementById('displayPlayer'),
+    displayLimb: document.getElementById('displayLimb'),
+    displayColorCircle: document.getElementById('displayColorCircle'),
+    displayColorName: document.getElementById('displayColorName'),
+    roundInfo: document.getElementById('roundInfo')
+  };
 
-      <section id="gameScreen" class="screen game-wrap" aria-label="Spielansicht">
-        <div class="panel game-card">
-          <div>
-            <div class="topline">
-              <div class="eyebrow">Aktuelle Runde</div>
-              <div class="status-pill" id="roundBadge">Bereit</div>
-            </div>
+  function showScreen(screenId) {
+    ui.onboarding.classList.remove('active');
+    ui.colors.classList.remove('active');
+    ui.game.classList.remove('active');
+    ui[screenId].classList.add('active');
+  }
 
-            <div class="player-block">
-              <div class="player-name" id="currentPlayer">Keine Person</div>
-              <div class="turn-note">Diese Person ist jetzt dran.</div>
-            </div>
+  // SPIELER LOGIK
+  function updatePlayerUI() {
+    ui.playerList.innerHTML = '';
+    state.players.forEach(function(name, i) {
+      const tag = document.createElement('div');
+      tag.className = 'player-tag';
+      tag.innerHTML = name + '<span onclick="removePlayer(' + i + ')">✕</span>';
+      ui.playerList.appendChild(tag);
+    });
+    ui.toColorsBtn.disabled = state.players.length < 1;
+  }
 
-            <div class="move-card">
-              <div class="move-label">Anweisung</div>
-              <div class="move-main">
-                <div class="move-color" id="moveColor"></div>
-                <div class="move-text">
-                  <strong id="moveLimb">Hand</strong>
-                  <span id="moveColorText">Wähle unten eine Runde aus</span>
-                </div>
-              </div>
-            </div>
+  window.removePlayer = function(index) {
+    state.players.splice(index, 1);
+    updatePlayerUI();
+  };
 
-            <div class="queue-card">
-              <div class="queue-row">
-                <span class="eyebrow" style="letter-spacing:0.02em;text-transform:none;">Als Nächstes</span>
-                <strong id="nextPlayer">–</strong>
-              </div>
-            </div>
-          </div>
+  function addPlayer() {
+    const val = ui.nameInput.value.trim();
+    if (val) {
+      state.players.push(val);
+      ui.nameInput.value = '';
+      ui.nameInput.focus();
+      updatePlayerUI();
+    }
+  }
 
-          <div class="bottom-bar">
-            <div class="bottom-stack">
-              <div class="bottom-actions">
-                <button class="fab" id="backToSetupBtn" type="button" aria-label="Zurück zu den Einstellungen">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M15 18l-6-6 6-6"></path>
-                  </svg>
-                </button>
-                <button class="spin-btn" id="spinBtn" type="button">Zufällige Auswahl starten</button>
-                <button class="small-action" id="skipBtn" type="button">Skip</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
+  document.getElementById('addNameBtn').addEventListener('click', addPlayer);
+  ui.nameInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') addPlayer();
+  });
 
-  <script>
-    const COLORS = [
-      { name: 'Gelb', hex: '#facc15' },
-      { name: 'Grün', hex: '#22c55e' },
-      { name: 'Orange', hex: '#f97316' },
-      { name: 'Rot', hex: '#ef4444' },
-      { name: 'Blau', hex: '#3b82f6' },
-      { name: 'Lila', hex: '#a855f7' },
-      { name: 'Weiß', hex: '#f8fafc' },
-      { name: 'Schwarz', hex: '#111827' }
+  ui.toColorsBtn.addEventListener('click', function() { showScreen('colors'); });
+
+  // FARBEN LOGIK
+  function renderColors() {
+    ui.colorGrid.innerHTML = '';
+    COLORS.forEach(function(color) {
+      const dot = document.createElement('div');
+      dot.className = 'color-dot';
+      if (state.selectedColors.indexOf(color.name) > -1) {
+        dot.classList.add('selected');
+      }
+      dot.style.backgroundColor = color.hex;
+      dot.onclick = function() {
+        const idx = state.selectedColors.indexOf(color.name);
+        if (idx > -1) {
+          state.selectedColors.splice(idx, 1);
+        } else {
+          state.selectedColors.push(color.name);
+        }
+        renderColors();
+        ui.startGameBtn.disabled = state.selectedColors.length === 0;
+      };
+      ui.colorGrid.appendChild(dot);
+    });
+    ui.selectAllBtn.textContent = state.selectedColors.length === COLORS.length ? 'Alle abwählen' : 'Alle wählen';
+  }
+
+  ui.selectAllBtn.onclick = function() {
+    if (state.selectedColors.length === COLORS.length) {
+      state.selectedColors = [];
+    } else {
+      state.selectedColors = COLORS.map(function(c) { return c.name; });
+    }
+    renderColors();
+    ui.startGameBtn.disabled = state.selectedColors.length === 0;
+  };
+
+  document.getElementById('backToPlayers').onclick = function() { showScreen('onboarding'); };
+
+  // GAME ENGINE
+  ui.startGameBtn.onclick = function() {
+    state.currentIndex = 0;
+    state.round = 1;
+    ui.displayPlayer.textContent = state.players[0];
+    showScreen('game');
+  };
+
+  document.getElementById('spinBtn').onclick = function() {
+    if (window.navigator.vibrate) window.navigator.vibrate(40);
+    
+    const limbs = [
+      {icon: '✋', text: 'Hand'}, 
+      {icon: '🦶', text: 'Fuß'}
     ];
-
-    const state = {
-      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-      selected: new Set(COLORS.map(c => c.name)),
-      players: ['Anna', 'Ben'],
-      currentPlayerIndex: 0,
-      round: 0,
-      currentMove: null
-    };
-
-    const setupScreen = document.getElementById('setupScreen');
-    const gameScreen = document.getElementById('gameScreen');
-    const colorGrid = document.getElementById('colorGrid');
-    const playerList = document.getElementById('playerList');
-    const colorCount = document.getElementById('colorCount');
-    const playerCount = document.getElementById('playerCount');
-    const summaryPills = document.getElementById('summaryPills');
-    const currentPlayer = document.getElementById('currentPlayer');
-    const nextPlayer = document.getElementById('nextPlayer');
-    const roundBadge = document.getElementById('roundBadge');
-    const moveLimb = document.getElementById('moveLimb');
-    const moveColor = document.getElementById('moveColor');
-    const moveColorText = document.getElementById('moveColorText');
-    const nameInput = document.getElementById('nameInput');
-
-    function setTheme(theme) {
-      state.theme = theme;
-      document.documentElement.setAttribute('data-theme', theme);
-      document.querySelector('[data-theme-toggle]').innerHTML = theme === 'dark'
-        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>'
-        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-    }
-
-    function activePlayer() {
-      return state.players.length ? state.players[state.currentPlayerIndex] : null;
-    }
-
-    function upcomingPlayer() {
-      if (state.players.length < 2) return activePlayer() || '–';
-      return state.players[(state.currentPlayerIndex + 1) % state.players.length];
-    }
-
-    function renderColors() {
-      colorGrid.innerHTML = '';
-      COLORS.forEach(color => {
-        const label = document.createElement('label');
-        label.className = 'color-tile';
-        label.innerHTML = `
-          <input type="checkbox" ${state.selected.has(color.name) ? 'checked' : ''} data-color="${color.name}">
-          <span class="swatch" style="background:${color.hex}"></span>
-          <span>${color.name}</span>
-        `;
-        colorGrid.appendChild(label);
-      });
-      colorCount.textContent = `${state.selected.size} aktiv`;
-    }
-
-    function renderPlayers() {
-      playerCount.textContent = `${state.players.length} ${state.players.length === 1 ? 'Person' : 'Personen'}`;
-      if (!state.players.length) {
-        playerList.innerHTML = '<div class="empty">Noch keine Teilnehmenden hinzugefügt.</div>';
-        return;
-      }
-      playerList.innerHTML = state.players.map((player, index) => `
-        <div class="player-chip">
-          <div class="player-main">
-            <span class="index">${index + 1}</span>
-            <strong>${player}</strong>
-          </div>
-          <button class="ghost" type="button" data-remove-player="${index}">Entfernen</button>
-        </div>
-      `).join('');
-    }
-
-    function renderSummary() {
-      const pills = [
-        `${state.selected.size} Farben aktiv`,
-        `${state.players.length} Teilnehmende`,
-        state.players.length ? `Start: ${activePlayer()}` : 'Keine Startperson'
-      ];
-      summaryPills.innerHTML = pills.map(text => `<div class="summary-pill">${text}</div>`).join('');
-    }
-
-    function renderGame() {
-      currentPlayer.textContent = activePlayer() || 'Keine Person';
-      nextPlayer.textContent = upcomingPlayer();
-      roundBadge.textContent = state.round ? `Runde ${state.round}` : 'Bereit';
-      if (!state.currentMove) {
-        moveLimb.textContent = 'Hand';
-        moveColorText.textContent = 'Starte unten die erste zufällige Auswahl';
-        moveColor.style.background = 'rgba(148,163,184,0.18)';
-        moveColor.style.borderColor = 'rgba(148,163,184,0.2)';
-        return;
-      }
-      moveLimb.textContent = state.currentMove.limb;
-      moveColorText.textContent = state.currentMove.color.name;
-      moveColor.style.background = state.currentMove.color.hex;
-      moveColor.style.borderColor = state.currentMove.color.name === 'Weiß' ? 'rgba(15,23,42,0.14)' : 'transparent';
-    }
-
-    function updateAll() {
-      renderColors();
-      renderPlayers();
-      renderSummary();
-      renderGame();
-    }
-
-    function startGame() {
-      if (!state.players.length || !state.selected.size) return;
-      setupScreen.classList.remove('active');
-      gameScreen.classList.add('active');
-      renderGame();
-    }
-
-    function backToSetup() {
-      gameScreen.classList.remove('active');
-      setupScreen.classList.add('active');
-    }
-
-    function nextPlayerTurn() {
-      if (!state.players.length) return;
-      state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
-    }
-
-    function spin() {
-      const player = activePlayer();
-      const selectedColors = COLORS.filter(c => state.selected.has(c.name));
-      if (!player || !selectedColors.length) return;
-      const limb = Math.random() < 0.5 ? 'Hand' : 'Fuß';
-      const color = selectedColors[Math.floor(Math.random() * selectedColors.length)];
-      state.currentMove = { player, limb, color };
-      state.round += 1;
-      renderGame();
-      if ('vibrate' in navigator) navigator.vibrate(60);
-      nextPlayerTurn();
-      renderSummary();
-      renderGame();
-    }
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.config-pane').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab + 'Pane').classList.add('active');
-      });
+    const move = limbs[Math.floor(Math.random() * limbs.length)];
+    
+    const activeColors = COLORS.filter(function(c) {
+      return state.selectedColors.indexOf(c.name) > -1;
     });
+    const color = activeColors[Math.floor(Math.random() * activeColors.length)];
 
-    colorGrid.addEventListener('change', (event) => {
-      const input = event.target;
-      if (!(input instanceof HTMLInputElement)) return;
-      const color = input.dataset.color;
-      if (!color) return;
-      input.checked ? state.selected.add(color) : state.selected.delete(color);
-      renderSummary();
-      renderColors();
-    });
+    ui.displayLimb.textContent = move.icon;
+    ui.displayColorName.textContent = move.text + ' auf ' + color.name;
+    ui.displayColorCircle.style.backgroundColor = color.hex;
+    ui.displayPlayer.textContent = state.players[state.currentIndex];
+    ui.roundInfo.textContent = 'Runde ' + state.round;
 
-    playerList.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-remove-player]');
-      if (!button) return;
-      const index = Number(button.dataset.removePlayer);
-      state.players.splice(index, 1);
-      if (state.currentPlayerIndex >= state.players.length) state.currentPlayerIndex = 0;
-      updateAll();
-    });
+    state.currentIndex = (state.currentIndex + 1) % state.players.length;
+    if (state.currentIndex === 0) state.round++;
+  };
 
-    document.getElementById('allBtn').addEventListener('click', () => {
-      state.selected = new Set(COLORS.map(c => c.name));
-      updateAll();
-    });
+  document.getElementById('resetGame').onclick = function() {
+    if (confirm('Spiel beenden?')) location.reload();
+  };
 
-    document.getElementById('noneBtn').addEventListener('click', () => {
-      state.selected = new Set();
-      updateAll();
-    });
-
-    document.getElementById('addPlayerBtn').addEventListener('click', () => {
-      const name = nameInput.value.trim();
-      if (!name) return;
-      state.players.push(name);
-      nameInput.value = '';
-      updateAll();
-    });
-
-    nameInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        document.getElementById('addPlayerBtn').click();
-      }
-    });
-
-    document.getElementById('startGameBtn').addEventListener('click', startGame);
-    document.getElementById('backToSetupBtn').addEventListener('click', backToSetup);
-    document.getElementById('spinBtn').addEventListener('click', spin);
-    document.getElementById('skipBtn').addEventListener('click', () => {
-      nextPlayerTurn();
-      renderSummary();
-      renderGame();
-    });
-
-    document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
-      setTheme(state.theme === 'dark' ? 'light' : 'dark');
-    });
-
-    setTheme(state.theme);
-    updateAll();
-  </script>
+  // Start
+  renderColors();
+</script>
 </body>
 </html>
