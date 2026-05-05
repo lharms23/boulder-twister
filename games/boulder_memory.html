@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Boulder Memory</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ios-blue: #007AFF;
+      --ios-bg: #F2F2F7;
+      --ios-card: rgba(255, 255, 255, 0.9);
+      --ios-text: #1c1c1e;
+      --ios-text-sec: #8E8E93;
+      --wall-color: #e5e5ea;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { 
+        --ios-bg: #000000; 
+        --ios-card: rgba(28, 28, 30, 0.9); 
+        --ios-text: #FFFFFF;
+        --wall-color: #1c1c1e;
+      }
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; font-family: 'Inter', sans-serif; background-color: var(--ios-bg);
+      color: var(--ios-text); height: 100dvh; overflow: hidden;
+    }
+
+    .app-container {
+      max-width: 500px; margin: 0 auto; height: 100%;
+      display: flex; flex-direction: column;
+      padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+    }
+
+    /* Banner aus Eliminator */
+    .app-logo {
+      width: 100%; height: 140px; border-radius: 20px;
+      margin: 10px 0; object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Navigation */
+    .back-navigation { position: fixed; top: env(safe-area-inset-top, 20px); left: 20px; z-index: 9999; }
+    .back-button {
+        display: flex; align-items: center; gap: 5px; padding: 8px 12px;
+        background: var(--ios-card); backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px); border-radius: 12px;
+        text-decoration: none; color: var(--ios-blue); font-weight: 500; font-size: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Info Button Design */
+    .info-button {
+        position: fixed; top: env(safe-area-inset-top, 20px); right: 20px;
+        width: 36px; height: 36px; background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px); border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; color: #007AFF;
+        font-weight: bold; font-size: 18px; font-family: Georgia, serif;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; z-index: 9999; border: none;
+    }
+
+    #info-overlay {
+        position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(6px); z-index: 10000; display: none;
+        align-items: center; justify-content: center; padding: 20px;
+    }
+
+    .info-card {
+        background: white; padding: 25px; border-radius: 24px;
+        max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2); color: #1c1c1e;
+    }
+
+    h1 { font-size: 24px; font-weight: 900; text-align: center; margin: 10px 0; letter-spacing: -0.5px; }
+
+    /* Wand-Optik */
+    .boulder-wall {
+      background-color: var(--wall-color);
+      background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0);
+      background-size: 15px 15px;
+      border-radius: 20px; padding: 10px; flex: 1;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+
+    .wall-grid {
+      display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; width: 100%;
+    }
+    
+    .hole {
+      aspect-ratio: 1; border-radius: 50%; background: rgba(0,0,0,0.05);
+      cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .hole.active {
+      background: var(--ios-blue); transform: scale(1.8); z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,122,255,0.4);
+    }
+
+    .hole.latest { animation: pulse 1.5s infinite; border: 1px solid white; }
+
+    @keyframes pulse {
+        0% { transform: scale(1.8); }
+        50% { transform: scale(2.1); }
+        100% { transform: scale(1.8); }
+    }
+
+    .step-number { color: white; font-size: 8px; font-weight: 900; pointer-events: none; }
+
+    /* Controls */
+    .glass-card {
+      background: var(--ios-card); backdrop-filter: blur(20px); border-radius: 20px; 
+      padding: 12px; margin: 15px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center;
+    }
+
+    .controls { display: flex; gap: 10px; margin-bottom: 10px; }
+    .btn {
+      flex: 1; border-radius: 16px; border: none; font-weight: 700; font-size: 17px;
+      padding: 16px; cursor: pointer; transition: 0.1s;
+    }
+    .btn-primary { background: var(--ios-blue); color: white; }
+    .btn-secondary { background: rgba(0, 122, 255, 0.1); color: var(--ios-blue); }
+    .btn:active { transform: scale(0.96); }
+
+    .status-text { font-size: 13px; color: var(--ios-text-sec); font-weight: 600; margin-bottom: 2px; }
+    .current-step { font-size: 18px; font-weight: 900; color: var(--ios-blue); }
+
+  </style>
+</head>
+<body>
+
+<nav class="back-navigation">
+    <a href="../index.html" class="back-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Menü
+    </a>
+</nav>
+
+<button class="info-button" onclick="showInfo()">i</button>
+
+<div id="info-overlay">
+    <div class="info-card">
+        <h2>Boulder Memory</h2>
+        <p><strong>So wird gespielt:</strong></p>
+        <ul>
+            <li>Der erste Spieler wählt einen Startgriff im Raster aus.</li>
+            <li>Der Kletterer muss die bisherige Sequenz klettern und am Ende einen **neuen Griff** hinzufügen.</li>
+            <li>Tippe den neuen Griff im Raster an – er wird automatisch nummeriert.</li>
+            <li>Die Wand füllt sich organisch. Wer die Reihenfolge vergisst oder den neuen Zug nicht schafft, fliegt raus!</li>
+        </ul>
+        <button class="btn btn-primary" onclick="hideInfo()" style="width:100%">Verstanden</button>
+    </div>
+</div>
+
+<div class="app-container">
+    <img src="../src/img/memory.png" alt="Boulder Memory" class="app-logo" onerror="this.src='https://via.placeholder.com/500x150?text=Boulder+Memory'">
+    
+    <h1>Boulder Memory</h1>
+    
+    <div class="boulder-wall">
+        <div class="wall-grid" id="pathGrid"></div>
+    </div>
+
+    <div class="glass-card">
+        <div class="status-text">Nächster Griff</div>
+        <div class="current-step" id="stepDisplay">Schritt 1</div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-secondary" onclick="app.undo()">Undo</button>
+        <button class="btn btn-primary" onclick="app.reset()">Reset</button>
+    </div>
+</div>
+
+<script>
+    const app = {
+        sequence: [], 
+        totalHoles: 600, 
+
+        init() {
+            this.renderGrid();
+        },
+
+        renderGrid() {
+            const grid = document.getElementById('pathGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < this.totalHoles; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole';
+                hole.id = 'hole_' + i;
+                hole.onclick = () => this.addStep(i);
+                grid.appendChild(hole);
+            }
+            this.updateVisuals();
+        },
+
+        addStep(index) {
+            this.sequence.push(index);
+            if (navigator.vibrate) navigator.vibrate(40);
+            this.updateVisuals();
+        },
+
+        undo() {
+            this.sequence.pop();
+            this.updateVisuals();
+        },
+
+        reset() {
+            if (this.sequence.length === 0 || confirm('Gesamte Route löschen?')) {
+                this.sequence = [];
+                this.updateVisuals();
+            }
+        },
+
+        updateVisuals() {
+            document.querySelectorAll('.hole').forEach(h => {
+                h.classList.remove('active', 'latest');
+                h.innerHTML = '';
+            });
+
+            this.sequence.forEach((holeIdx, stepIdx) => {
+                const hole = document.getElementById('hole_' + holeIdx);
+                if (hole) {
+                    hole.classList.add('active');
+                    const stepNum = stepIdx + 1;
+                    const existingLabel = hole.querySelector('.step-number');
+                    
+                    if (existingLabel) {
+                        existingLabel.innerText += `,${stepNum}`;
+                    } else {
+                        hole.innerHTML = `<span class="step-number">${stepNum}</span>`;
+                    }
+
+                    if (stepIdx === this.sequence.length - 1) {
+                        hole.classList.add('latest');
+                    }
+                }
+            });
+
+            document.getElementById('stepDisplay').innerText = `Schritt ${this.sequence.length + 1}`;
+        }
+    };
+
+    function showInfo() { document.getElementById('info-overlay').style.display = 'flex'; }
+    function hideInfo() { document.getElementById('info-overlay').style.display = 'none'; }
+
+    app.init();
+</script>
+
+</body>
+</html>

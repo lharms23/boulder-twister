@@ -1,336 +1,206 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Boulder Twister Pro</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Boulder Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
 
-  <style>
-    :root {
-      --ios-blue: #007AFF;
-      --ios-green: #34C759;
-      --ios-red: #FF3B30;
-      --ios-bg: #F2F2F7;
-      --ios-card: rgba(255, 255, 255, 0.9);
-      --ios-text: #000000;
-      --ios-text-sec: #8E8E93;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root { --ios-bg: #000000; --ios-card: rgba(28, 28, 30, 0.9); --ios-text: #FFFFFF; }
-    }
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --text-color: rgb(22, 21, 21);
+        }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0; font-family: 'Inter', sans-serif; background-color: var(--ios-bg);
-      color: var(--ios-text); height: 100dvh; overflow: hidden;
-    }
+        body {
+            margin: 0;
+            padding: env(safe-area-inset-top) 20px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
 
-    .app-container {
-      max-width: 500px; margin: 0 auto; height: 100%;
-      display: flex; flex-direction: column;
-      padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-    }
+        .container {
+            width: 100%;
+            max-width: 400px; 
+        }
 
-    /* BANNER STYLE LOGO */
-    .app-logo {
-      width: 100%; height: 280px; border-radius: 20px;
-      margin: 15px 0 10px; object-fit: cover;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
+        .banner-container {
+            width: 100%;
+            margin: 10px 0 40px 0;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: 180px;
+        }
 
-    h1 { font-size: 26px; font-weight: 900; text-align: center; margin: 5px 0 15px; }
-    h2 { font-size: 17px; font-weight: 700; margin: 12px 0 8px; }
+        .banner {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-    .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; padding-bottom: 20px; }
-    .screen.active { display: flex; animation: fadeIn 0.2s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+       
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px 5px;
+            padding: 5px;
+        }
 
-    .glass-card {
-      background: var(--ios-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-radius: 20px; padding: 18px; margin-bottom: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-    }
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    .segmented-control { display: flex; background: rgba(142, 142, 147, 0.15); border-radius: 12px; padding: 3px; margin-bottom: 10px; }
-    .segment {
-      flex: 1; text-align: center; padding: 10px 0; font-size: 14px; font-weight: 600;
-      border-radius: 9px; cursor: pointer; transition: 0.2s;
-    }
-    .segment.active { background: white; color: black; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .app-item:active {
+            transform: scale(0.85); 
+        }
 
-    .input-field {
-      width: 100%; background: rgba(142, 142, 147, 0.15); border: none;
-      border-radius: 12px; padding: 14px; font-size: 17px; color: var(--ios-text); margin-bottom: 12px;
-    }
 
-    .btn {
-      border-radius: 16px; border: none; font-weight: 700; font-size: 17px; padding: 18px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 8px;
-    }
-    .btn:active { opacity: 0.7; transform: scale(0.98); }
-    .btn:disabled { opacity: 0.3; pointer-events: none; }
-    .btn-primary { background: var(--ios-blue); color: white; }
-    .btn-secondary { background: rgba(0, 122, 255, 0.1); color: var(--ios-blue); }
-    .btn-danger { background: rgba(255, 59, 48, 0.1); color: var(--ios-red); }
+        .app-icon {
+            width: 120px; 
+            height: 120px;
+            border-radius: 16px; 
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            margin-bottom: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .color-dot { aspect-ratio: 1; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; position: relative; }
-    .color-dot.selected::after {
-      content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      color: #FFFFFF; text-shadow: 0px 0px 4px rgba(0,0,0,0.8); font-weight: 900; font-size: 20px;
-    }
+        .app-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-    .game-main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-    .round-pill { background: var(--ios-text); color: var(--ios-bg); padding: 6px 20px; border-radius: 30px; font-weight: 900; margin-bottom: 15px; }
-    .player-label { font-size: 38px; font-weight: 900; }
-    .side-label { font-size: 22px; font-weight: 700; color: var(--ios-text-sec); min-height: 27px; }
-    .limb-icon { font-size: 80px; margin: 15px 0; }
-    .color-name { font-size: 28px; font-weight: 800; margin-top: 10px; }
+        .app-label {
+            color: var(--text-color);
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.2px;
+        }
 
-    .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(142,142,147,0.2); }
-    .score-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 12px; font-weight: 800; font-size: 14px; }
-  </style>
+        .coming-soon {
+            filter: grayscale(1) opacity(0.5);
+        }
+
+        #disclaimer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .disclaimer-card {
+            background: white;
+            padding: 25px;
+            border-radius: 24px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .disclaimer-card h2 {
+            margin-top: 0;
+            color: #ff4f30;
+            font-size: 22px;
+        }
+
+        .disclaimer-card p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #3a3a3c;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-
-<div class="app-container">
-  
-  <section id="screenStart" class="screen active">
-    <img src="banner.png" alt="Banner" class="app-logo" onerror="this.style.display='none'">
-    <h1>Boulder Twister</h1>
-    <div class="glass-card">
-      <h2>Spieler</h2>
-      <div class="segmented-control" id="ctrlPlayers">
-        <div class="segment active" onclick="app.setPlayers(1, this)">1 Spieler</div>
-        <div class="segment" onclick="app.setPlayers(2, this)">2 Spieler</div>
-      </div>
-      <h2>Schwierigkeit</h2>
-      <div class="segmented-control" id="ctrlDiff">
-        <div class="segment" onclick="app.setDiff('easy', this)">Einfach</div>
-        <div class="segment active" onclick="app.setDiff('normal', this)">Normal</div>
-        <div class="segment" onclick="app.setDiff('hard', this)">Hard</div>
-      </div>
-      <p id="diffInfo" style="font-size: 12px; color: var(--ios-text-sec); text-align: center;">Normal: Hand/Fuß ohne Seite.</p>
+    <div id="disclaimer-overlay">
+    <div class="disclaimer-card">
+        <h2>Disclaimer</h2>
+        <p>
+        Bouldering is a physically demanding and potentially dangerous sport. By using these games, you acknowledge and accept that all participation is at your own risk. You are solely responsible for assessing your own abilities, the suitability of your environment, and compliance with all applicable safety rules and local regulations.
+        The publisher and contributors of this game collection assume no liability for injuries, accidents, loss, or damage arising from the use or misuse of these games, except where such exclusion is not permitted by law.
+        If minors participate, they must be supervised by a parent or legal guardian.
+        By continuing, you confirm that you understand these risks and agree to use the games responsibly.
+        </p>
+        <button class="btn-primary" onclick="acceptDisclaimer()" style="width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; background: #007AFF; color: white;">
+            Verstanden & Akzeptiert
+        </button>
     </div>
-    <div style="flex: 1;"></div>
-    <button class="btn btn-primary" onclick="app.navToNames()">Weiter</button>
-    <button class="btn btn-secondary" onclick="app.navToLeaderboard()">Bestenliste</button>
-  </section>
-
-  <section id="screenNames" class="screen">
-    <h1>Namen</h1>
-    <div class="glass-card">
-      <input type="text" id="inP1" class="input-field" placeholder="Name Spieler 1">
-      <input type="text" id="inP2" class="input-field" placeholder="Name Spieler 2" style="display:none;">
-    </div>
-    <div style="flex: 1;"></div>
-    <button class="btn btn-primary" onclick="app.navToColors()">Zur Farbwahl</button>
-    <button class="btn btn-secondary" onclick="app.showScreen('screenStart')">Zurück</button>
-  </section>
-
-  <section id="screenColors" class="screen">
-    <h1>Wandfarben</h1>
-    <div id="wallP1">
-      <h2 id="wallTitleP1">Wand 1</h2>
-      <div class="glass-card"><div class="color-grid" id="gridP1"></div></div>
-    </div>
-    <div id="wallP2" style="display:none;">
-      <h2 id="wallTitleP2">Wand 2</h2>
-      <div class="glass-card"><div class="color-grid" id="gridP2"></div></div>
-    </div>
-    <div style="flex: 1;"></div>
-    <button class="btn btn-primary" id="btnStartGame" onclick="app.navToGame()" disabled>Spiel starten</button>
-  </section>
-
-  <section id="screenGame" class="screen">
-    <div style="text-align: right; padding-top: 10px;">
-      <button class="btn btn-secondary" style="width:auto; display:inline-flex;" onclick="app.endGame()">Beenden</button>
-    </div>
-    <div class="game-main">
-      <div class="round-pill" id="uiRound">Bereit?</div>
-      <div class="player-label" id="uiPlayer">Start</div>
-      <div class="side-label" id="uiSide"></div>
-      <div class="limb-icon" id="uiLimb">🧗</div>
-      <div id="uiColorCircle" style="width:100px; height:100px; border-radius:30px;"></div>
-      <div class="color-name" id="uiColorName">Tippe auf Nächster Zug</div>
-    </div>
-    <button class="btn btn-secondary" id="btnSkip" style="display:none;" onclick="app.skip()">Zug auslassen</button>
-    <button class="btn btn-primary" onclick="app.spin()" style="height:80px; font-size:22px;">Nächster Zug</button>
-  </section>
-
-  <section id="screenLeaderboard" class="screen">
-    <h1>Bestenliste</h1>
-    <div class="glass-card" style="flex:1;" id="leaderboardList"></div>
-    <button class="btn btn-danger" onclick="app.clearLeaderboard()">Löschen</button>
-    <button class="btn btn-primary" onclick="app.showScreen('screenStart')">Menü</button>
-  </section>
-
 </div>
+    <div class="container">
+        <!-- Banner oben -->
+        <div class="banner-container">
+            <img src="src/img/banner.png" class="banner" alt="Banner" onerror="this.src='https://via.placeholder.com/600x200?text=Boulder+Games'">
+        </div>
 
-<script>
-  const COLORS = [
-    { n: 'Gelb', c: '#FFD60A' }, { n: 'Grün', c: '#34C759' },
-    { n: 'Orange', c: '#FF9500' }, { n: 'Rot', c: '#FF3B30' },
-    { n: 'Blau', c: '#007AFF' }, { n: 'Lila', c: '#AF52DE' },
-    { n: 'Weiß', c: '#FFFFFF' }, { n: 'Schwarz', c: '#1C1C1E' }
-  ];
+        <div class="app-grid">
+            <!-- Boulder Eliminator -->
+            <a href="games/boulder_eliminator.html" class="app-item">
+                <div class="app-icon">
+                    <img src="src/img/eliminator-icon.png" alt="Eliminator" onerror="this.parentElement.innerHTML='🧗‍♂️'">
+                </div>
+                <div class="app-label">Eliminator</div>
+            </a>
 
-  const app = {
-    config: { players: 1, diff: 'normal' },
-    gameState: { players: [], totalTurns: 0 },
+            <!-- Boulder Twister -->
+            <a href="games/boulder_twister.html" class="app-item">
+                <div class="app-icon">
+                    <img src="src/img/twister-icon.png" alt="Twister" onerror="this.parentElement.innerHTML='🌪️'">
+                </div>
+                <div class="app-label">Twister</div>
+            </a>
 
-    showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    },
-
-    setPlayers(num, el) {
-      this.config.players = num;
-      document.querySelectorAll('#ctrlPlayers .segment').forEach(s => s.classList.remove('active'));
-      el.classList.add('active');
-    },
-
-    setDiff(d, el) {
-      this.config.diff = d;
-      document.querySelectorAll('#ctrlDiff .segment').forEach(s => s.classList.remove('active'));
-      el.classList.add('active');
-      const info = { easy: 'Einfach: Aussetzer möglich.', normal: 'Normal: Hand/Fuß.', hard: 'Hard: Mit L/R.' };
-      document.getElementById('diffInfo').innerText = info[d];
-    },
-
-    navToNames() {
-      document.getElementById('inP2').style.display = (this.config.players === 2) ? 'block' : 'none';
-      this.showScreen('screenNames');
-    },
-
-    navToColors() {
-      const p1 = document.getElementById('inP1').value.trim() || 'Spieler 1';
-      const p2 = document.getElementById('inP2').value.trim() || 'Spieler 2';
-      this.gameState.players = [{ name: p1, colors: [], skips: 0, lastRound: 0 }];
-      if (this.config.players === 2) {
-        this.gameState.players.push({ name: p2, colors: [], skips: 0, lastRound: 0 });
-        document.getElementById('wallP2').style.display = 'block';
-        document.getElementById('wallTitleP1').innerText = p1;
-        document.getElementById('wallTitleP2').innerText = p2;
-      } else {
-        document.getElementById('wallP2').style.display = 'none';
-      }
-      this.renderGrids();
-      this.showScreen('screenColors');
-    },
-
-    renderGrids() {
-      const draw = (elId, pIdx) => {
-        const grid = document.getElementById(elId);
-        grid.innerHTML = '';
-        COLORS.forEach(c => {
-          const dot = document.createElement('div');
-          dot.className = 'color-dot' + (this.gameState.players[pIdx].colors.includes(c.n) ? ' selected' : '');
-          dot.style.backgroundColor = c.c;
-          dot.onclick = () => {
-            const list = this.gameState.players[pIdx].colors;
-            const i = list.indexOf(c.n);
-            if (i > -1) list.splice(i, 1); else list.push(c.n);
-            this.renderGrids();
-          };
-          grid.appendChild(dot);
-        });
-      };
-      draw('gridP1', 0);
-      if (this.config.players === 2) draw('gridP2', 1);
-      document.getElementById('btnStartGame').disabled = this.gameState.players.some(p => p.colors.length === 0);
-    },
-
-    navToGame() {
-      this.gameState.totalTurns = 0;
-      document.getElementById('btnSkip').style.display = (this.config.diff === 'easy') ? 'block' : 'none';
-      // Reset UI
-      document.getElementById('uiRound').innerText = 'Bereit?';
-      document.getElementById('uiPlayer').innerText = this.gameState.players[0].name;
-      document.getElementById('uiLimb').innerText = '🧗';
-      document.getElementById('uiColorCircle').style.backgroundColor = 'transparent';
-      document.getElementById('uiSide').innerText = '';
-      this.showScreen('screenGame');
-    },
-
-    spin() {
-      if (navigator.vibrate) navigator.vibrate(40);
-      const pIdx = this.gameState.totalTurns % this.gameState.players.length;
-      const round = Math.floor(this.gameState.totalTurns / this.gameState.players.length) + 1;
-      const player = this.gameState.players[pIdx];
-
-      const limbs = [{ i: '✋', t: 'Hand' }, { i: '🦶', t: 'Fuß' }];
-      const move = limbs[Math.floor(Math.random() * limbs.length)];
-      const colorName = player.colors[Math.floor(Math.random() * player.colors.length)];
-      const colorHex = COLORS.find(c => c.n === colorName).c;
-
-      document.getElementById('uiRound').innerText = 'Runde ' + round;
-      document.getElementById('uiPlayer').innerText = player.name;
-      document.getElementById('uiLimb').innerText = move.i;
-      document.getElementById('uiColorName').innerText = move.t + ' auf ' + colorName;
-      document.getElementById('uiColorCircle').style.backgroundColor = colorHex;
-      
-      if (this.config.diff === 'hard') {
-        document.getElementById('uiSide').innerText = Math.random() > 0.5 ? 'Rechte' : 'Linke';
-      } else {
-        document.getElementById('uiSide').innerText = '';
-      }
-      player.lastRound = round;
-      this.gameState.totalTurns++;
-    },
-
-    skip() {
-      const pIdx = (this.gameState.totalTurns) % this.gameState.players.length;
-      this.gameState.players[pIdx].skips++;
-      this.spin();
-    },
-
-    endGame() {
-      if (confirm('Spiel beenden?')) {
-        this.saveScore();
-        this.navToLeaderboard();
-      }
-    },
-
-    saveScore() {
-      let board = JSON.parse(localStorage.getItem('tw_final_v3') || '[]');
-      this.gameState.players.forEach(p => {
-        if (p.lastRound > 0) {
-          board.push({ name: p.name, rounds: p.lastRound, skips: p.skips, diff: this.config.diff, date: new Date().toLocaleDateString('de-DE') });
-        }
-      });
-      board.sort((a, b) => b.rounds - a.rounds);
-      localStorage.setItem('tw_final_v3', JSON.stringify(board.slice(0, 20)));
-    },
-
-    navToLeaderboard() {
-      const list = document.getElementById('leaderboardList');
-      const board = JSON.parse(localStorage.getItem('tw_final_v3') || '[]');
-      list.innerHTML = board.length ? '' : '<p style="text-align:center; color:gray; padding:20px;">Keine Einträge</p>';
-      board.forEach(e => {
-        const item = document.createElement('div');
-        item.className = 'leader-item';
-        const sInfo = e.diff === 'easy' ? `<br><small style="color:red">${e.skips} Aussetzer</small>` : '';
-        item.innerHTML = `<div><strong>${e.name}</strong><br><small>${e.date} | ${e.diff}</small>${sInfo}</div>
-                          <div class="score-badge">${e.rounds} Runden</div>`;
-        list.appendChild(item);
-      });
-      this.showScreen('screenLeaderboard');
-    },
-
-    clearLeaderboard() {
-      if (confirm('Wirklich alles löschen?')) {
-        localStorage.removeItem('tw_final_v3');
-        this.navToLeaderboard();
-      }
+             <!-- Boulder Memory -->
+            <a href="games/boulder_memory.html" class="app-item">
+                <div class="app-icon">
+                    <img src="src/img/memory-icon.png" alt="Memory" onerror="this.parentElement.innerHTML='🧠'">
+                </div>
+                <div class="app-label">Memory</div>
+            </a>
+            </a>
+            
+            <!-- Platzhalter für das nächste Spiel -->
+            <div class="app-item coming-soon">
+                <div class="app-icon">
+                    <span style="font-size: 24px; color: #8E8E93;">+</span>
+                </div>
+                <div class="app-label">Coming soon...</div>
+            </div>
+        </div>
+    </div>
+    <script>
+    function acceptDisclaimer() {
+        document.getElementById('disclaimer-overlay').style.display = 'none';
+        sessionStorage.setItem('disclaimerAccepted', 'true');
     }
-  };
-</script>
+
+    window.onload = function() {
+        if(sessionStorage.getItem('disclaimerAccepted') === 'true') {
+            document.getElementById('disclaimer-overlay').style.display = 'none';
+        }
+    }
+    </script>
 </body>
 </html>

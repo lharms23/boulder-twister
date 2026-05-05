@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Boulder Eliminator</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ios-blue: #007AFF;
+      --ios-green: #34C759;
+      --ios-red: #FF3B30;
+      --ios-gold: #FFCC00;
+      --ios-bg: #F2F2F7;
+      --ios-card: rgba(255, 255, 255, 0.9);
+      --ios-text: rgb(22, 21, 21);
+      --ios-text-sec: #8E8E93;
+      --wall-color: #e5e5ea;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; font-family: 'Inter', sans-serif; background-color: var(--ios-bg);
+      color: var(--ios-text); height: 100dvh; overflow: hidden;
+    }
+
+    .app-container {
+      max-width: 500px; margin: 0 auto; height: 100%;
+      display: flex; flex-direction: column;
+      padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+    }
+
+    .app-logo {
+      width: 100%; height: 180px; border-radius: 20px;
+      margin: 10px 0; object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 { font-size: 16px; font-weight: 700; margin: 10px 0 5px; }
+
+    .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; padding-bottom: 20px; }
+    .screen.active { display: flex; }
+
+    .glass-card {
+      background: var(--ios-card); backdrop-filter: blur(20px); border-radius: 20px; 
+      padding: 15px; margin-bottom: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+    }
+
+    .boulder-wall {
+      background-color: var(--wall-color);
+      background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0);
+      background-size: 15px 15px;
+      border-radius: 20px; padding: 10px; flex: 1;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+
+    .wall-grid {
+      display: grid;
+      grid-template-columns: repeat(20, 1fr);
+      gap: 3px;
+      width: 100%;
+    }
+    
+    .hole {
+      aspect-ratio: 1; border-radius: 50%;
+      background: rgba(0,0,0,0.05);
+      cursor: pointer; position: relative;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .hole.active {
+      transform: scale(1.8);
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .hole.top-target {
+      border: 2px solid gold !important;
+      box-shadow: 0 0 10px gold;
+      z-index: 12;
+    }
+
+    .hole.toxic::after {
+      content: '✕'; 
+      position: absolute; 
+      inset: 0;
+      color: white;
+      font-weight: 900; 
+      font-size: 11px; 
+      display: flex;
+      align-items: center; 
+      justify-content: center; 
+      border-radius: 50%;
+      z-index: 11;
+      text-shadow: 
+        -.5px -.5px 0 #000,  
+        .5px -.5px 0 #000,
+        -.5px  .5px 0 #000,
+        .5px  .5px 0 #000,
+        0px 0px 1px rgba(0,0,0,1);
+    }
+
+    .palette { display: flex; justify-content: space-between; gap: 4px; overflow-x: auto; padding: 5px 0; }
+    .palette-color {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
+    }
+    .palette-color.selected { border-color: var(--ios-blue); transform: scale(1.1); }
+
+    .btn {
+      border-radius: 16px; border: none; font-weight: 700; font-size: 17px; padding: 16px;
+      cursor: pointer; width: 100%; margin-bottom: 8px;
+    }
+    .btn-primary { background: var(--ios-blue); color: white; }
+    .btn-success { background: var(--ios-green); color: white; }
+    .btn-gold { background: var(--ios-gold); color: black; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4); }
+    .btn-danger { background: rgba(255, 59, 48, 0.1); color: var(--ios-red); }
+    .btn-secondary { background: rgba(0, 122, 255, 0.1); color: var(--ios-blue); }
+
+    #toast {
+      position: fixed; top: 10%; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.8); color: white; padding: 12px 24px;
+      border-radius: 25px; font-weight: 600; font-size: 14px;
+      opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000;
+    }
+    #toast.show { opacity: 1; visibility: visible; top: 12%; }
+
+    .player-chip {
+        padding: 8px 14px; border-radius: 12px; background: white; color: var(--ios-text);
+        margin-right: 8px; font-size: 13px; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .player-chip.active { background: var(--ios-blue); color: white; font-weight: bold; }
+    .player-chip.out { text-decoration: line-through; opacity: 0.4; }
+
+    .mode-select { display: flex; gap: 10px; margin-bottom: 10px; }
+    .mode-btn { 
+        flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #ddd; 
+        background: white; font-weight: 600; cursor: pointer; text-align: center;
+    }
+    .mode-btn.active { border-color: var(--ios-blue); background: rgba(0,122,255,0.05); color: var(--ios-blue); }
+
+    input.ios-input {
+        width: 100%; background: rgba(142, 142, 147, 0.12); border: none; padding: 14px;
+        color: var(--ios-text); border-radius: 12px; margin-bottom: 10px; font-size: 16px;
+    }
+    
+    .back-navigation {
+        position: fixed;
+        top: env(safe-area-inset-top, 20px);
+        left: 20px;
+        z-index: 9999;
+    }
+
+    .back-button {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px); /* Glas-Effekt */
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        text-decoration: none;
+        color: #007AFF;
+        font-weight: 500;
+        font-size: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.1s active;
+    }
+
+    .back-button:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.9);
+    }
+    .info-button {
+    position: fixed;
+    top: env(safe-area-inset-top, 20px);
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #007AFF;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: Georgia, serif; /* Lässt das 'i' klassisch aussehen */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 9999;
+    border: none;
+    transition: transform 0.1s;
+    }
+
+    .info-button:active {
+        transform: scale(0.90);
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Das Info-Fenster (Modal) */
+    #info-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 10000;
+        display: none; /* Standardmäßig versteckt */
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .info-card {
+        background: white;
+        padding: 25px;
+        border-radius: 24px;
+        max-width: 400px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        color: #1c1c1e;
+    }
+
+    .info-card h2 {
+        margin-top: 0;
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .info-card p, .info-card li {
+        font-size: 15px;
+        color: #3a3a3c;
+        line-height: 1.5;
+    }
+
+    .info-card ul {
+        padding-left: 20px;
+        margin-bottom: 20px;
+    }
+
+    .close-info-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 14px;
+        border: none;
+        background: #007AFF;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+    <nav class="back-navigation">
+        <a href="../index.html" class="back-button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Menü
+        </a>
+    </nav>
+
+<div id="toast">Nächste Runde!</div>
+
+<button class="info-button" onclick="showInfo()">i</button>
+
+<div id="info-overlay">
+    <div class="info-card">
+        <h2>Spielanleitung</h2>
+        
+        <p><strong>Ziel des Spiels:</strong></p>
+        <p>Bleibe als letzter Spieler an der Wand! Wer den Boulder nicht mehr schafft, scheidet aus.</p>
+        
+        <p><strong>Ablauf:</strong></p>
+        <ul>
+            <li><strong>Setup:</strong> Definiert gemeinsam die Startgriffe an der Wand.</li>
+            <li><strong>Modus Zufall:</strong> Jede Runde wird zufällig ein Griff gesperrt (mit einem ✕ markiert).</li>
+            <li><strong>Modus Taktisch:</strong> Wer den Boulder schafft, darf einen beliebigen Griff für die anderen sperren.</li>
+        </ul>
+        
+        <button class="close-info-btn" onclick="hideInfo()">Verstanden</button>
+    </div>
+</div>
+
+<div class="app-container">
+  
+  <section id="screenStart" class="screen active">
+    <img src="../src/img/eliminator.png" alt="Banner" class="app-logo" onerror="this.src='https://via.placeholder.com/500x100?text=Wall+Eliminator'">
+    <div class="glass-card">
+      <h2>Spielmodus</h2>
+      <div class="mode-select">
+          <div class="mode-btn active" id="mode0" onclick="app.setMode(0)">Zufall</div>
+          <div class="mode-btn" id="mode1" onclick="app.setMode(1)">Taktisch</div>
+      </div>
+      <h2>Spieler</h2>
+      <div id="playerListInputs">
+        <input type="text" class="ios-input p-name" placeholder="Name Spieler 1">
+      </div>
+      <button class="btn btn-secondary" onclick="app.addPlayerInput()" style="font-size:13px; padding:10px;">+ Weiterer Spieler</button>
+    </div>
+    <div style="flex: 1;"></div>
+    <button class="btn btn-primary" onclick="app.navToSetup()">Zum Wand-Setup</button>
+  </section>
+
+  <section id="screenSetup" class="screen">
+    <div class="boulder-wall">
+      <div class="wall-grid" id="gridSetup"></div>
+    </div>
+    <div class="glass-card" style="margin-top:10px;">
+      <div class="palette" id="palette"></div>
+    </div>
+    <button class="btn btn-primary" id="btnStartGame" onclick="app.startGame()" disabled>Spiel starten</button>
+    <button class="btn btn-secondary" onclick="app.showScreen('screenStart')">Zurück</button>
+  </section>
+
+  <section id="screenGame" class="screen">
+    <div id="playerStatusHeader" style="margin-top:15px; white-space:nowrap; overflow-x:auto; padding: 5px 0;"></div>
+    
+    <div class="boulder-wall">
+      <div class="wall-grid" id="gridGame"></div>
+    </div>
+
+    <div class="glass-card" style="margin-top:12px; text-align:center;">
+        <div id="currentPlayerDisplay" style="font-size:22px; font-weight:900; color:var(--ios-blue);">Laden...</div>
+        <div id="gameInfo" style="font-size:14px; color:var(--ios-text-sec); margin-top:2px;">Runde 1: Klettern!</div>
+    </div>
+
+    <div id="gameControls">
+        <button class="btn btn-primary" id="btnDone" onclick="app.playerDone(true)" style="height:70px;">Geschafft! ✓</button>
+        <button class="btn btn-danger" id="btnFail" onclick="app.playerDone(false)">Nicht geschafft ✕</button>
+        <button class="btn btn-gold" id="btnFinishEarly" onclick="app.finishGame()" style="display:none; margin-top:10px;">Sieg! Spiel beenden</button>
+    </div>
+  </section>
+
+  <section id="screenLeaderboard" class="screen">
+    <div class="glass-card" id="resultList" style="margin-top:20px;"></div>
+    <button class="btn btn-primary" onclick="location.reload()">Neues Spiel</button>
+  </section>
+
+</div>
+
+<script>
+  const COLORS = [
+    { n: 'Gelb', c: '#FFD60A' }, { n: 'Grün', c: '#34C759' },
+    { n: 'Orange', c: '#FF9500' }, { n: 'Rot', c: '#FF3B30' },
+    { n: 'Blau', c: '#007AFF' }, { n: 'Lila', c: '#AF52DE' },
+    { n: 'Weiß', c: '#FFFFFF' }, { n: 'Schwarz', c: '#1C1C1E' }
+  ];
+
+  const app = {
+    players: [],
+    wallData: {}, 
+    eliminatedHolds: [],
+    selectedColor: COLORS[0].c,
+    currentPlayerIdx: 0,
+    currentRound: 1,
+    gameMode: 0, // 0 = Zufall, 1 = Taktisch
+    topHoldId: null,
+    isSelectingElim: false,
+
+    init() {
+      this.renderSetupGrid();
+      this.renderPalette();
+    },
+
+    setMode(m) {
+      this.gameMode = m;
+      document.getElementById('mode0').classList.toggle('active', m === 0);
+      document.getElementById('mode1').classList.toggle('active', m === 1);
+    },
+
+    addPlayerInput() {
+      const input = document.createElement('input');
+      input.className = 'ios-input p-name';
+      input.placeholder = 'Name Spieler ' + (document.querySelectorAll('.p-name').length + 1);
+      document.getElementById('playerListInputs').appendChild(input);
+    },
+
+    showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    },
+
+    navToSetup() {
+      this.players = [];
+      document.querySelectorAll('.p-name').forEach(inp => {
+        if(inp.value.trim()) this.players.push({ name: inp.value.trim(), out: false, score: 0 });
+      });
+      if(this.players.length === 0) this.players.push({ name: 'Spieler 1', out: false, score: 0 });
+      this.showScreen('screenSetup');
+    },
+
+    renderSetupGrid() {
+      const grid = document.getElementById('gridSetup');
+      grid.innerHTML = '';
+      for (let i = 0; i < 600; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'hole';
+        hole.onclick = () => this.toggleHold(i, hole);
+        grid.appendChild(hole);
+      }
+    },
+
+    toggleHold(i, el) {
+      if (this.wallData[i]) {
+        delete this.wallData[i];
+        el.style.backgroundColor = '';
+        el.classList.remove('active');
+      } else {
+        this.wallData[i] = this.selectedColor;
+        el.style.backgroundColor = this.selectedColor;
+        el.classList.add('active');
+      }
+      document.getElementById('btnStartGame').disabled = Object.keys(this.wallData).length < 2;
+    },
+
+    renderPalette() {
+      const pal = document.getElementById('palette');
+      COLORS.forEach(col => {
+        const p = document.createElement('div');
+        p.className = 'palette-color' + (this.selectedColor === col.c ? ' selected' : '');
+        p.style.backgroundColor = col.c;
+        if(col.n === 'Weiß') p.style.border = '1px solid #ddd';
+        p.onclick = () => {
+          this.selectedColor = col.c;
+          document.querySelectorAll('.palette-color').forEach(x => x.classList.remove('selected'));
+          p.classList.add('selected');
+        };
+        pal.appendChild(p);
+      });
+    },
+
+    startGame() {
+      this.currentPlayerIdx = 0;
+      this.currentRound = 1;
+      this.eliminatedHolds = [];
+      this.isSelectingElim = false;
+      
+      const holdIds = Object.keys(this.wallData).map(Number);
+      this.topHoldId = Math.min(...holdIds);
+
+      this.renderGameGrid();
+      this.updateGameUI();
+      this.showScreen('screenGame');
+    },
+
+    renderGameGrid() {
+      const grid = document.getElementById('gridGame');
+      grid.innerHTML = '';
+      for (let i = 0; i < 600; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'hole';
+        hole.id = 'game_hold_' + i;
+        if (this.wallData[i]) {
+          hole.style.backgroundColor = this.wallData[i];
+          hole.classList.add('active');
+          if (i === this.topHoldId) hole.classList.add('top-target');
+          hole.onclick = () => this.handleTacticalClick(i);
+        }
+        grid.appendChild(hole);
+      }
+    },
+
+    updateGameUI() {
+      const activePlayers = this.players.filter(p => !p.out);
+      const isLastPlayer = activePlayers.length === 1;
+
+      const header = document.getElementById('playerStatusHeader');
+      header.innerHTML = '';
+      this.players.forEach((p, idx) => {
+        const span = document.createElement('span');
+        span.className = 'player-chip' + (idx === this.currentPlayerIdx ? ' active' : '') + (p.out ? ' out' : '');
+        span.innerText = p.name;
+        header.appendChild(span);
+      });
+
+      const current = this.players[this.currentPlayerIdx];
+      document.getElementById('currentPlayerDisplay').innerText = current.name;
+      document.getElementById('gameInfo').innerText = this.isSelectingElim ? "Wähle einen Griff zum Entfernen!" : "Runde " + this.currentRound + ": Klettern!";
+      
+      const btnDone = document.getElementById('btnDone');
+      const btnFail = document.getElementById('btnFail');
+      const btnFinishEarly = document.getElementById('btnFinishEarly');
+
+      if (this.isSelectingElim) {
+        btnDone.style.display = 'none';
+        btnFail.style.display = 'none';
+        btnFinishEarly.style.display = 'none';
+      } else if (isLastPlayer) {
+        btnDone.style.display = 'block';
+        btnFail.style.display = 'none'; 
+        btnFinishEarly.style.display = 'block';
+        btnFinishEarly.innerText = "Spiel beenden";
+      } else {
+        btnDone.style.display = 'block';
+        btnFail.style.display = 'block';
+        btnFinishEarly.style.display = 'none';
+      }
+    },
+
+    playerDone(success) {
+      const current = this.players[this.currentPlayerIdx];
+      if (!success) {
+        current.out = true;
+        current.score = this.currentRound - 1;
+        this.findNextPlayer();
+      } else {
+        if (this.gameMode === 1) {
+            this.isSelectingElim = true;
+            this.updateGameUI();
+        } else {
+            this.findNextPlayer();
+        }
+      }
+    },
+
+    handleTacticalClick(id) {
+        if (!this.isSelectingElim) return;
+        if (id === this.topHoldId) {
+            this.showToast("Top-Griff geschützt!");
+            return;
+        }
+        if (this.eliminatedHolds.includes(id)) return;
+
+        this.eliminatedHolds.push(id);
+        document.getElementById('game_hold_' + id).classList.add('toxic');
+        this.isSelectingElim = false;
+        this.findNextPlayer();
+    },
+
+    findNextPlayer() {
+      let activePlayers = this.players.filter(p => !p.out);
+      if (activePlayers.length === 0) {
+        this.finishGame();
+        return;
+      }
+
+      let nextIdx = (this.currentPlayerIdx + 1) % this.players.length;
+      
+      if (this.gameMode === 0 && (nextIdx <= this.currentPlayerIdx || this.players.length === 1)) {
+          this.spinEliminator();
+      }
+
+      while(this.players[nextIdx].out) {
+          nextIdx = (nextIdx + 1) % this.players.length;
+      }
+
+      this.currentPlayerIdx = nextIdx;
+      if (this.gameMode === 1) this.currentRound++; 
+      this.updateGameUI();
+    },
+
+    spinEliminator() {
+      const available = Object.keys(this.wallData).filter(id => !this.eliminatedHolds.includes(id) && Number(id) !== this.topHoldId);
+      if (available.length > 0) {
+        const targetId = available[Math.floor(Math.random() * available.length)];
+        this.eliminatedHolds.push(targetId);
+        document.getElementById('game_hold_' + targetId).classList.add('toxic');
+        this.currentRound++;
+        this.showToast("Nächste Runde!");
+        if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+      } else {
+        this.finishGame();
+      }
+    },
+
+    showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    },
+
+    finishGame() {
+      const resList = document.getElementById('resultList');
+      const modeLabel = this.gameMode === 0 ? "Zufall" : "Taktisch";
+      resList.innerHTML = `<h2>Endstand (${modeLabel})</h2>`;
+      
+      this.players.forEach(p => { if(!p.out) p.score = this.currentRound - 1; });
+      this.players.sort((a, b) => b.score - a.score);
+      
+      this.players.forEach(p => {
+        const div = document.createElement('div');
+        div.style.display = 'flex'; div.style.justifyContent = 'space-between';
+        div.style.padding = '12px 0'; div.style.borderBottom = '1px solid #eee';
+        div.innerHTML = `<span>${p.name}</span><strong>${p.score} Runden</strong>`;
+        resList.appendChild(div);
+      });
+      this.showScreen('screenLeaderboard');
+    }
+  };
+
+  function showInfo() {
+    document.getElementById('info-overlay').style.display = 'flex';
+  }
+
+  function hideInfo() {
+    document.getElementById('info-overlay').style.display = 'none';
+  }
+
+  app.init();
+</script>
+</body>
+</html>"""
